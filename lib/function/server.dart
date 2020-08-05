@@ -1,26 +1,21 @@
-import 'dart:async';
-import 'dart:io' show WebSocket, HttpServer, WebSocketTransformer;
+import 'dart:io';
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+void main() {
+  Server('bob', 1234).startServer();
+}
 
-class Server extends ChangeNotifier {
+class Server {
   Server(this.username, this.port);
 
   final String username;
   final int port;
-  final String uid = UniqueKey().toString();
   List<Map<String, String>> messages = [];
   Map<String, WebSocket> clientSockets = {};
-  final messageStreamController = StreamController<List<Map<String, String>>>();
-  Stream get messageStream {
-    return messageStreamController.stream;
-  }
 
-  void startClient() {
-    messageStreamController.addStream(Stream.value(messages));
+  void startServer() {
     print('server started');
-    HttpServer.bind('localhost', port).then((server) {
+    HttpServer.bind('localhost', 1234).then((server) {
       print('after threads');
       server.listen((request) {
         final uid = request.uri.pathSegments[0];
@@ -32,9 +27,11 @@ class Server extends ChangeNotifier {
               ws.listen(
                 (event) {
                   print('$event');
-                  messages.add(json.decode(event));
+                  messages.add(Map<String, String>.from(json.decode(event)));
                   clientSockets.forEach((key, value) {
+                    print('from outside if $key');
                     if (key != uid) {
+                      print(key);
                       value.add(event);
                     }
                   });
@@ -58,13 +55,13 @@ class Server extends ChangeNotifier {
     });
   }
 
-  void sendMessage(String message) {
-    final map = {'message': message, 'name': username, 'uid': uid};
-    messages.add(map);
-    clientSockets.forEach((uid, ws) {
-      messageStreamController.add(messages);
-      ws.add(json.encode(map));
-    });
-    notifyListeners();
-  }
+  // void sendMessage(String message) {
+  //   print('sending message from server');
+  //   final map = {'message': message, 'name': username, 'uid': uid};
+  //   messages.add(map);
+  //   clientSockets.forEach((uid, ws) {
+  //     ws.add(json.encode(map));
+  //   });
+  //   notifyListeners();
+  // }
 }

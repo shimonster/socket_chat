@@ -21,11 +21,11 @@ class _MyAppState extends State<MyApp> {
   ChangeNotifier _messagingService;
 
   void setData(bool newMode, String newName, int port) {
-    _isCreating = newMode;
     _username = newName;
-    if (newMode) {
+    _isCreating = false;
+    if (false) {
       print('server');
-      _messagingService = Server(_username, port);
+      // _messagingService = Server(_username, port);
     } else {
       print('client');
       _messagingService = Client(_username, port);
@@ -36,16 +36,21 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     print(_messagingService);
-    return ChangeNotifierProvider.value(
-      value: _messagingService == null ? ChangeNotifier() : _messagingService,
-      child: MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
-        home: _messagingService == null ? Auth(setData) : Chat(_isCreating),
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      home: _messagingService == null
+          ? Auth(setData)
+          : _isCreating
+              ? Chat(
+                  // messageServer: _messagingService,
+                  )
+              : Chat(
+                  messageClient: _messagingService,
+                ),
     );
   }
 }
